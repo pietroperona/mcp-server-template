@@ -1,0 +1,104 @@
+# Vai nella directory deployment
+cd deployment
+
+cat > render.yaml << 'EOF'
+# {{cookiecutter.project_name}} - Render.com Deployment Configuration
+# Auto-generated from mcp-server-template
+
+services:
+  # {{cookiecutter.project_name}} MCP Server
+  - type: web
+    name: {{cookiecutter.project_slug}}
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      # Server Configuration
+      - key: PORT
+        generateValue: true  # Render sets this automatically
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      
+      # MCP Server Settings
+      - key: MCP_SERVER_NAME
+        value: {{cookiecutter.project_slug}}
+      - key: MCP_SERVER_VERSION
+        value: {{cookiecutter.project_version}}
+      - key: MCP_HOST
+        value: 0.0.0.0
+      
+      # API Configuration
+      - key: API_BASE_URL
+        value: https://api.example.com  # TODO: Replace with actual API URL
+      - key: API_VERSION
+        value: v1
+      - key: API_TIMEOUT
+        value: "30"
+      
+      # Authentication - Set these in Render Dashboard
+{% if cookiecutter.auth_type == "API Key" -%}
+      - key: API_KEY
+        sync: false  # Set manually in Render dashboard for security
+      - key: API_KEY_HEADER
+        value: X-API-Key
+{% elif cookiecutter.auth_type == "Bearer Token" -%}
+      - key: BEARER_TOKEN
+        sync: false  # Set manually in Render dashboard for security
+{% elif cookiecutter.auth_type == "OAuth2" -%}
+      - key: CLIENT_ID
+        sync: false  # Set manually in Render dashboard for security
+      - key: CLIENT_SECRET
+        sync: false  # Set manually in Render dashboard for security
+      - key: OAUTH_SCOPE
+        value: read,write
+      - key: OAUTH_REDIRECT_URI
+        value: https://{{cookiecutter.project_slug}}.onrender.com/callback
+{% elif cookiecutter.auth_type == "Basic Auth" -%}
+      - key: USERNAME
+        sync: false  # Set manually in Render dashboard for security
+      - key: PASSWORD
+        sync: false  # Set manually in Render dashboard for security
+{% endif -%}
+      
+{% if cookiecutter.include_rate_limiting == "yes" -%}
+      # Rate Limiting Configuration
+      - key: RATE_LIMIT_REQUESTS
+        value: "100"
+      - key: RATE_LIMIT_WINDOW
+        value: "3600"
+{% endif -%}
+      
+{% if cookiecutter.include_caching == "yes" -%}
+      # Redis/Caching Configuration (if using external Redis)
+      - key: REDIS_URL
+        sync: false  # Set manually if using external Redis
+      - key: CACHE_TTL
+        value: "300"
+{% endif -%}
+    
+    # Health check endpoint
+    healthCheckPath: /health
+    
+    # Auto-deploy settings
+    autoDeploy: true
+    
+    # Resource limits
+    disk:
+      name: {{cookiecutter.project_slug}}-disk
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
+
+# Optional: Database service (uncomment if needed)
+# databases:
+#   - name: {{cookiecutter.project_slug}}-db
+#     databaseName: {{cookiecutter.project_slug|replace("-", "_")}}
+#     user: {{cookiecutter.project_slug|replace("-", "_")}}_user
+EOF
+
+# Rimuovi .gitkeep
+rm .gitkeep
