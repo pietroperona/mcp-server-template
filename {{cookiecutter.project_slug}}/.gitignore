@@ -1,0 +1,116 @@
+# {{cookiecutter.project_name}} - Generated .gitignore
+
+# ========================================
+# 🔐 SECURITY - CREDENTIALS & SECRETS
+# ========================================
+.env
+.env.local
+.env.production
+.env.staging
+*.key
+*.pem
+*.p12
+secrets.json
+config/credentials.json
+
+# API credentials
+api_key*
+client_secret*
+access_token*
+refresh_token*
+
+# ========================================
+# 🐍 PYTHON ENVIRONMENT
+# ========================================
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.Python
+pyvenv.cfg
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ========================================
+# 🧪 TESTING & COVERAGE
+# ========================================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# ========================================
+# 📝 LOGS & DEBUGGING
+# ========================================
+*.log
+logs/
+*.log.*
+debug.log
+error.log
+access.log
+mcp_server.log
+
+# ========================================
+# 💻 IDE & EDITOR
+# ========================================
+# VSCode
+.vscode/
+!.vscode/settings.json.example
+
+# PyCharm
+.idea/
+*.iml
+
+# ========================================
+# 🍎 macOS
+# ========================================
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ========================================
+# 💾 CACHING & TEMPORARY
+# ========================================
+{% if cookiecutter.include_caching == "yes" -%}
+# Cache files
+*.cache
+cache/
+redis-dump.rdb
+{% endif -%}
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.bak
+*.swp

@@ -1,0 +1,17 @@
+{
+    "project_name": "My MCP Server",
+    "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '-').replace('_', '-') }}",
+    "project_description": "MCP server for external API integration with Render.com deployment",
+    "author_name": "Your Name",
+    "author_email": "you@example.com",
+    "github_username": "yourusername",
+    "project_version": "0.1.0",
+    "api_service_type": ["REST API", "GraphQL", "WebSocket", "Custom"],
+    "auth_type": ["API Key", "Bearer Token", "OAuth2", "Basic Auth", "Custom"],
+    "include_rate_limiting": ["yes", "no"],
+    "include_caching": ["yes", "no"],
+    "render_deployment": ["yes", "no"],
+    "docker_support": ["yes", "no"],
+    "license": ["MIT", "Apache-2.0", "GPL-3.0", "Proprietary"],
+    "python_version": "3.11"
+}
