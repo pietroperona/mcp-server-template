@@ -1,15 +1,15 @@
 # {{cookiecutter.project_name}} - MCP Server Dependencies
 # Generated from mcp-server-template
+# Tested and working dependencies
 
-# ✅ Core MCP Framework
+# ✅ Core MCP Framework - FastMCP (Tested)
 fastmcp>=0.1.0
 
-# ✅ HTTP Client & Async Support
+# ✅ HTTP Client & Async Support (Required)
 aiohttp>=3.9.0
 httpx>=0.25.0
-requests>=2.31.0
 
-# ✅ Configuration Management
+# ✅ Configuration Management (Simplified)
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 python-dotenv>=1.0.0
@@ -18,28 +18,20 @@ python-dotenv>=1.0.0
 {% if cookiecutter.auth_type == "OAuth2" -%}
 authlib>=1.3.0
 {% endif -%}
-{% if cookiecutter.auth_type == "JWT" or cookiecutter.auth_type == "Bearer Token" -%}
-pyjwt>=2.8.0
-{% endif -%}
 
 # ✅ Rate Limiting (Optional)
 {% if cookiecutter.include_rate_limiting == "yes" -%}
-limits>=3.6.0
+asyncio-throttle>=1.0.0
 {% endif -%}
 
 # ✅ Caching (Optional)
 {% if cookiecutter.include_caching == "yes" -%}
 redis>=5.0.0
-diskcache>=5.6.0
 {% endif -%}
 
-# ✅ Development & Testing
+# ✅ Development & Testing (Optional)
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
-black>=23.0.0
-isort>=5.12.0
-mypy>=1.5.0
 
 # ✅ Logging & Monitoring
 structlog>=23.0.0
-rich>=13.0.0

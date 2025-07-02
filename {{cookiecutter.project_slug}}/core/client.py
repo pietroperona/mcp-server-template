@@ -4,39 +4,30 @@ Generic {{cookiecutter.api_service_type}} API client with rate limiting and erro
 Auto-generated from mcp-server-template
 """
 import asyncio
+import sys
+from pathlib import Path
 import time
 import json
 from typing import Dict, Any, Optional, List, Union
 from datetime import datetime, timedelta
 import aiohttp
-import httpx
 {% if cookiecutter.include_rate_limiting == "yes" -%}
 from asyncio import Semaphore
 {% endif -%}
 
-from .config import config
-from .auth import auth
+# Fix import path for direct execution
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from core.config import config
+from core.auth import auth
 
 
 {% if cookiecutter.include_rate_limiting == "yes" -%}
 class RateLimiter:
-    """
-    Rate limiter for API requests
-    
-    Implements token bucket algorithm to respect API rate limits.
-    """
+    """Rate limiter for API requests using token bucket algorithm"""
     
     def __init__(self, max_requests: int, time_window: int):
-        """
-        Initialize rate limiter
-        
-        Args:
-            max_requests: Maximum requests allowed in time window
-            time_window: Time window in seconds
-        """
         self.max_requests = max_requests
         self.time_window = time_window
-        self.semaphore = Semaphore(max_requests)
         self.requests = []
         self._lock = asyncio.Lock()
     
@@ -71,12 +62,6 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
     - Retry logic with exponential backoff
     - Request/response logging
     - Error handling and custom exceptions
-    - Support for both aiohttp and httpx
-    
-    Example:
-        >>> client = {{cookiecutter.project_slug|title|replace("-", "")}}Client()
-        >>> data = await client.get("/users/123")
-        >>> result = await client.post("/users", {"name": "John"})
     """
     
     def __init__(self):
@@ -89,7 +74,6 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
         )
 {% endif -%}
         self._session: Optional[aiohttp.ClientSession] = None
-        self._httpx_client: Optional[httpx.AsyncClient] = None
     
     async def __aenter__(self):
         """Async context manager entry"""
@@ -106,18 +90,10 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
             self._session = aiohttp.ClientSession(timeout=timeout)
         return self._session
     
-    async def _get_httpx_client(self) -> httpx.AsyncClient:
-        """Get or create httpx client"""
-        if self._httpx_client is None:
-            self._httpx_client = httpx.AsyncClient(timeout=self.timeout)
-        return self._httpx_client
-    
     async def close(self):
         """Close all HTTP sessions"""
         if self._session and not self._session.closed:
             await self._session.close()
-        if self._httpx_client:
-            await self._httpx_client.aclose()
     
     async def _make_request(
         self,
@@ -127,31 +103,9 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
         json_data: Optional[Dict] = None,
         data: Optional[Union[Dict, str, bytes]] = None,
         headers: Optional[Dict] = None,
-        use_httpx: bool = False,
         **kwargs
     ) -> Dict[Any, Any]:
-        """
-        Make HTTP request with authentication, rate limiting, and retry logic
-        
-        Args:
-            method: HTTP method (GET, POST, PUT, DELETE, etc.)
-            endpoint: API endpoint (e.g., "/users" or "/users/123")
-            params: URL parameters
-            json_data: JSON payload for request body
-            data: Raw data for request body
-            headers: Additional headers
-            use_httpx: Use httpx instead of aiohttp
-            **kwargs: Additional arguments passed to the HTTP client
-        
-        Returns:
-            Dict: JSON response from API
-            
-        Raises:
-            APIError: If API returns error response
-            RateLimitError: If rate limit exceeded
-            TimeoutError: If request times out
-            ConnectionError: If connection fails
-        """
+        """Make HTTP request with authentication, rate limiting, and retry logic"""
 {% if cookiecutter.include_rate_limiting == "yes" -%}
         # Wait for rate limit slot
         await self.rate_limiter.acquire()
@@ -182,22 +136,42 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
         
         for attempt in range(max_retries + 1):
             try:
-                if use_httpx:
-                    response_data = await self._make_httpx_request(
-                        method, url, params, json_data, data, final_headers, **kwargs
-                    )
-                else:
-                    response_data = await self._make_aiohttp_request(
-                        method, url, params, json_data, data, final_headers, **kwargs
-                    )
+                session = await self._get_session()
                 
-                # Log successful response
-                if config.mcp.debug:
-                    print(f"✅ Response received ({len(str(response_data))} chars)")
+                async with session.request(
+                    method=method,
+                    url=url,
+                    params=params,
+                    json=json_data,
+                    data=data,
+                    headers=final_headers,
+                    **kwargs
+                ) as response:
+                    
+                    # Handle different response types
+                    content_type = response.headers.get("Content-Type", "")
+                    
+                    if response.status >= 400:
+                        error_text = await response.text()
+                        raise APIError(
+                            f"API error {response.status}: {error_text}",
+                            status_code=response.status,
+                            response_text=error_text
+                        )
+                    
+                    if "application/json" in content_type:
+                        result = await response.json()
+                    else:
+                        text_content = await response.text()
+                        result = {"content": text_content, "content_type": content_type}
+                    
+                    # Log successful response
+                    if config.mcp.debug:
+                        print(f"✅ Response received ({len(str(result))} chars)")
+                    
+                    return result
                 
-                return response_data
-                
-            except (aiohttp.ClientError, httpx.RequestError, asyncio.TimeoutError) as e:
+            except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 if attempt == max_retries:
                     raise ConnectionError(f"Request failed after {max_retries + 1} attempts: {e}")
                 
@@ -206,85 +180,6 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
                 print(f"⚠️ Request failed (attempt {attempt + 1}/{max_retries + 1}), retrying in {delay}s: {e}")
                 await asyncio.sleep(delay)
     
-    async def _make_aiohttp_request(
-        self,
-        method: str,
-        url: str,
-        params: Optional[Dict],
-        json_data: Optional[Dict],
-        data: Optional[Union[Dict, str, bytes]],
-        headers: Dict[str, str],
-        **kwargs
-    ) -> Dict[Any, Any]:
-        """Make request using aiohttp"""
-        session = await self._get_session()
-        
-        async with session.request(
-            method=method,
-            url=url,
-            params=params,
-            json=json_data,
-            data=data,
-            headers=headers,
-            **kwargs
-        ) as response:
-            
-            # Handle different response types
-            content_type = response.headers.get("Content-Type", "")
-            
-            if response.status >= 400:
-                error_text = await response.text()
-                raise APIError(
-                    f"API error {response.status}: {error_text}",
-                    status_code=response.status,
-                    response_text=error_text
-                )
-            
-            if "application/json" in content_type:
-                return await response.json()
-            else:
-                text_content = await response.text()
-                return {"content": text_content, "content_type": content_type}
-    
-    async def _make_httpx_request(
-        self,
-        method: str,
-        url: str,
-        params: Optional[Dict],
-        json_data: Optional[Dict],
-        data: Optional[Union[Dict, str, bytes]],
-        headers: Dict[str, str],
-        **kwargs
-    ) -> Dict[Any, Any]:
-        """Make request using httpx"""
-        client = await self._get_httpx_client()
-        
-        response = await client.request(
-            method=method,
-            url=url,
-            params=params,
-            json=json_data,
-            data=data,
-            headers=headers,
-            **kwargs
-        )
-        
-        if response.status_code >= 400:
-            raise APIError(
-                f"API error {response.status_code}: {response.text}",
-                status_code=response.status_code,
-                response_text=response.text
-            )
-        
-        try:
-            return response.json()
-        except ValueError:
-            return {"content": response.text, "content_type": response.headers.get("content-type")}
-    
-    # ===================================
-    # �� CONVENIENCE METHODS
-    # ===================================
-    
     async def get(
         self,
         endpoint: str,
@@ -292,17 +187,7 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
         headers: Optional[Dict] = None,
         **kwargs
     ) -> Dict[Any, Any]:
-        """
-        Make GET request
-        
-        Args:
-            endpoint: API endpoint
-            params: URL parameters
-            headers: Additional headers
-        
-        Returns:
-            Dict: JSON response
-        """
+        """Make GET request"""
         return await self._make_request("GET", endpoint, params=params, headers=headers, **kwargs)
     
     async def post(
@@ -314,19 +199,7 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
         headers: Optional[Dict] = None,
         **kwargs
     ) -> Dict[Any, Any]:
-        """
-        Make POST request
-        
-        Args:
-            endpoint: API endpoint
-            json_data: JSON payload
-            data: Raw data payload
-            params: URL parameters
-            headers: Additional headers
-        
-        Returns:
-            Dict: JSON response
-        """
+        """Make POST request"""
         return await self._make_request(
             "POST", endpoint, params=params, json_data=json_data, data=data, headers=headers, **kwargs
         )
@@ -369,26 +242,15 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
         """Make DELETE request"""
         return await self._make_request("DELETE", endpoint, params=params, headers=headers, **kwargs)
     
-    # ===================================
-    # 🔍 UTILITY METHODS
-    # ===================================
-    
     async def health_check(self) -> bool:
-        """
-        Check if API is accessible and responding
-        
-        Returns:
-            bool: True if API is healthy
-        """
+        """Check if API is accessible and responding"""
         try:
-            # Try a simple endpoint - adjust based on your API
+            # Try common health check endpoints
             endpoints_to_try = [
                 "/health",
                 "/status", 
                 "/ping",
                 "/",
-                "/api/health",
-                "/v1/health"
             ]
             
             for endpoint in endpoints_to_try:
@@ -411,12 +273,7 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
             return False
     
     async def get_api_info(self) -> Dict[str, Any]:
-        """
-        Get API information and capabilities
-        
-        Returns:
-            Dict: API information
-        """
+        """Get API information and capabilities"""
         info = {
             "base_url": self.base_url,
             "timeout": self.timeout,
@@ -432,18 +289,14 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
 {% endif -%}
             "client_info": {
                 "user_agent": f"{{cookiecutter.project_name}}/{{cookiecutter.project_version}}",
-                "session_active": self._session is not None and not self._session.closed,
-                "httpx_client_active": self._httpx_client is not None
+                "session_active": self._session is not None and not self._session.closed
             }
         }
         
         return info
 
 
-# ===================================
-# 🚨 CUSTOM EXCEPTIONS
-# ===================================
-
+# Custom Exceptions
 class APIError(Exception):
     """Raised when API returns an error response"""
     
@@ -463,22 +316,12 @@ class AuthenticationError(Exception):
     pass
 
 
-# ===================================
-# 🌍 GLOBAL CLIENT INSTANCE
-# ===================================
+# Global client instance
 client = {{cookiecutter.project_slug|title|replace("-", "")}}Client()
 
 
-# ===================================
-# 🧪 CLIENT TESTING
-# ===================================
 async def test_client():
-    """
-    Test client functionality and API connectivity
-    
-    This function can be called during development to verify
-    that the HTTP client is working correctly.
-    """
+    """Test client functionality and API connectivity"""
     print(f"🌐 Testing {{cookiecutter.api_service_type}} client...")
     print(f"📊 Client info: {await client.get_api_info()}")
     
@@ -504,6 +347,5 @@ async def test_client():
 
 
 if __name__ == "__main__":
-    # Allow running client module directly for testing
     import asyncio
     asyncio.run(test_client())
