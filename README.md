@@ -1,281 +1,337 @@
 # MCP Server Template
 
-**Cookiecutter template for creating production-ready MCP (Model Context Protocol) servers with one-click Render.com deployment.**
-
-Generate MCP servers for any API integration in minutes! Perfect for connecting Claude AI to REST APIs, GraphQL endpoints, or custom web services.
+A practical Cookiecutter template for building MCP servers that connect Claude AI to external APIs. Built with FastMCP and ready for Render.com deployment.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
-## 🎯 What This Template Creates
+## What This Does
 
-This Cookiecutter template generates a complete MCP server project with:
+This template generates a complete MCP server project that lets Claude AI interact with any API. Think of it as a bridge between Claude and the external services you want to use.
 
-✅ **Multiple Authentication Types** - API Key, Bearer Token, OAuth2, Basic Auth  
-✅ **Production-Ready Architecture** - Modular, scalable, well-documented  
-✅ **6 Generic MCP Tools** - CRUD operations for any API  
-✅ **One-Click Deployment** - Render.com ready with automated setup  
-✅ **Rate Limiting & Caching** - Built-in performance optimizations  
-✅ **Comprehensive Documentation** - Quick start, configuration, troubleshooting  
-✅ **Error Handling & Retry Logic** - Robust API integration  
-✅ **Docker Support** - Container-ready for any deployment  
+**Example**: Generate a weather MCP server in 2 minutes, deploy it to Render.com, and suddenly Claude can check weather for any city in the world.
 
-## 🚀 Quick Start
+## Tech Stack
 
-### 1. Install Cookiecutter
+- **[FastMCP](https://github.com/jlowin/fastmcp)** - Python framework for MCP servers
+- **[aiohttp](https://docs.aiohttp.org/)** - Async HTTP client for API calls  
+- **[Pydantic](https://docs.pydantic.dev/)** - Configuration management
+- **[Render.com](https://render.com)** - One-click deployment
+
+## Quick Start
+
+### 1. Generate Your Project
+
 ```bash
 pip install cookiecutter
+cookiecutter https://github.com/pietroperona/mcp-server-template
 ```
 
-### 2. Generate Your MCP Server
+You'll be asked a few questions:
+```
+project_name: Weather MCP Server
+author_name: Your Name
+api_service_type: REST API
+auth_type: API Key
+```
+
+### 2. Configure Your API
+
 ```bash
-cookiecutter https://github.com/yourusername/mcp-server-template
-```
-
-### 3. Answer the Prompts
-```
-project_name [My MCP Server]: Shopify Order Manager
-author_name [Your Name]: John Doe
-api_service_type [REST API]: REST API
-auth_type [API Key]: API Key
-render_deployment [yes]: yes
-```
-
-### 4. Your Server is Ready!
-```bash
-cd shopify-order-manager
+cd weather-mcp-server
 cp .env.example .env
-# Edit .env with your API credentials
+```
+
+Edit `.env` with your API credentials:
+```bash
+API_BASE_URL=https://api.openweathermap.org/data/2.5
+API_KEY=your_openweather_api_key
+```
+
+### 3. Install and Run
+
+```bash
 pip install -r requirements.txt
 python main.py
 ```
 
-🎉 **MCP server running at `http://localhost:8000`**
+Your MCP server is now running at `http://localhost:8000`
 
-## 🛠️ Template Features
+### 4. Connect to Claude Desktop
 
-### 🏗️ **Modular Architecture**
+Add this to your Claude Desktop MCP configuration:
+```json
+{
+  "mcpServers": {
+    "weather": {
+      "command": "python",
+      "args": ["weather-mcp-server/main.py"],
+      "cwd": "weather-mcp-server"
+    }
+  }
+}
 ```
-your-mcp-server/
-├── core/                    # Authentication, HTTP client, configuration
-├── tools/                   # MCP tool definitions
-├── docs/                    # Complete documentation
-├── deployment/              # Render.com + Docker configs
-└── main.py                  # Server entry point
+
+Now Claude can check weather: *"What's the weather like in Tokyo?"*
+
+## What You Get
+
+Every generated project includes:
+
+### 6 Ready-to-Use Tools
+- `get_api_status` - Check if your API is working
+- `list_resources` - Browse available data (cities, users, etc.)
+- `get_resource_by_id` - Get specific item details
+- `create_resource` - Add new data
+- `update_resource` - Modify existing data  
+- `delete_resource` - Remove data
+
+### Real Example: Weather API
+
+When you ask Claude *"What's the weather in Paris?"*, here's what happens:
+
+1. Claude calls `list_resources(resource_type="weather", location="Paris")`
+2. Your MCP server hits `https://api.openweathermap.org/data/2.5/weather?q=Paris`
+3. Claude gets the weather data and responds naturally
+
+### Project Structure
+
+```
+weather-mcp-server/
+├── core/
+│   ├── config.py     # API credentials & settings
+│   ├── auth.py       # Handle API authentication  
+│   └── client.py     # HTTP client with retries
+├── tools/
+│   └── example_tools.py  # The 6 MCP tools
+├── docs/             # Setup guides & troubleshooting
+├── main.py          # FastMCP server
+└── .env.example     # Configuration template
 ```
 
-### 🔧 **Built-in MCP Tools**
-- `get_api_status` - API connectivity and health checks
-- `list_resources` - Browse API resources with pagination
-- `get_resource_by_id` - Fetch specific resources
-- `create_resource` - Create new resources
-- `update_resource` - Modify existing resources
-- `delete_resource` - Remove resources
+## Authentication Support
 
-### 🔐 **Authentication Support**
-- **API Key** - Simple header-based authentication
-- **Bearer Token** - JWT and OAuth2 token support
-- **OAuth2** - Full OAuth2 flow with automatic refresh
-- **Basic Auth** - Username/password authentication
-- **Custom** - Extensible for any auth method
+The template handles different auth methods:
 
-### ⚡ **Performance Features**
-- Rate limiting with token bucket algorithm
-- Redis caching for API responses
-- Retry logic with exponential backoff
-- Connection pooling and timeouts
-- Request/response logging
-
-## 🌟 Example Use Cases
-
-### E-commerce Integration
+**API Key** (most common)
 ```bash
-# Generate Shopify MCP server
-cookiecutter https://github.com/yourusername/mcp-server-template
-# → Connect Claude to Shopify API for order management
+API_KEY=your_key_here
+API_KEY_HEADER=X-API-Key
 ```
 
-### Payment Processing
+**Bearer Token**
 ```bash
-# Generate Stripe MCP server  
-cookiecutter https://github.com/yourusername/mcp-server-template
-# → Connect Claude to Stripe API for payment operations
+BEARER_TOKEN=your_token_here
 ```
 
-### Project Management
+**OAuth2** (for complex APIs)
 ```bash
-# Generate GitHub MCP server
-cookiecutter https://github.com/yourusername/mcp-server-template
-# → Connect Claude to GitHub API for repository management
+CLIENT_ID=your_client_id
+CLIENT_SECRET=your_client_secret
 ```
 
-### CRM Integration
+**Basic Auth**
 ```bash
-# Generate Salesforce MCP server
-cookiecutter https://github.com/yourusername/mcp-server-template
-# → Connect Claude to Salesforce API for customer data
+USERNAME=your_username  
+PASSWORD=your_password
 ```
 
-## 🚀 One-Click Deployment
+## Production Deployment
 
-### Deploy to Render.com
+### Render.com (Recommended)
 
-1. **Generate your project** with this template
-2. **Push to GitHub** 
-3. **Click Deploy to Render** button in your generated README
-4. **Set environment variables** in Render dashboard
-5. **Your MCP server is live!**
+1. Push your generated project to GitHub
+2. Connect to Render.com
+3. Set your environment variables
+4. Your MCP server is live!
 
-### Deploy with Docker
+The template includes `render.yaml` with optimized settings for production.
+
+### Docker
 
 ```bash
-# Generated projects include Dockerfile
 docker build -t my-mcp-server .
 docker run -p 8000:8000 --env-file .env my-mcp-server
 ```
 
-## 📚 Generated Documentation
+## Real-World Examples
 
-Every generated project includes comprehensive documentation:
-
-- **📖 README.md** - Project overview and setup
-- **🚀 Quick Start Guide** - 5-minute setup instructions  
-- **⚙️ Configuration Guide** - Complete environment variable reference
-- **🔧 API Integration Guide** - Customize for your specific API
-- **🛠️ Development Guide** - Local development workflow
-- **🚀 Deployment Guide** - Production deployment instructions
-- **🔍 Troubleshooting Guide** - Common issues and solutions
-
-## 🎨 Customization Options
-
-### Template Variables
-
-The template supports extensive customization:
-
-```json
-{
-  "project_name": "My MCP Server",
-  "project_description": "MCP server for external API integration",
-  "author_name": "Your Name",
-  "author_email": "you@example.com",
-  "api_service_type": ["REST API", "GraphQL", "Custom"],
-  "auth_type": ["API Key", "Bearer Token", "OAuth2", "Basic Auth"],
-  "include_rate_limiting": ["yes", "no"],
-  "include_caching": ["yes", "no"],
-  "render_deployment": ["yes", "no"],
-  "docker_support": ["yes", "no"]
-}
+### Weather Service
+```bash
+# Generate project
+cookiecutter https://github.com/pietroperona/mcp-server-template
+# Project: Weather API Server
+# API: OpenWeatherMap (free)
+# Result: Claude can check weather worldwide
 ```
 
-### Post-Generation Hooks
-
-Automatic setup after generation:
-- ✅ Git repository initialization
-- ✅ Virtual environment creation
-- ✅ Dependencies installation
-- ✅ Environment file setup
-- ✅ Initial commit
-
-## 🧪 Development
-
-### Prerequisites
-
-- Python 3.11+
-- Cookiecutter
-- Git
-
-### Testing the Template
-
+### News Headlines  
 ```bash
-# Clone this repository
-git clone https://github.com/yourusername/mcp-server-template
-cd mcp-server-template
+# Generate project  
+cookiecutter https://github.com/pietroperona/mcp-server-template
+# Project: News API Server
+# API: NewsAPI.org (free tier)
+# Result: Claude can fetch latest news
+```
 
-# Test template generation
-cookiecutter .
+**Try it**: [NewsAPI.org](https://newsapi.org/) - 1000 free requests/day
 
-# Test the generated project
-cd your-generated-project
-pip install -r requirements.txt
+### Stock Prices
+```bash
+# Generate project
+cookiecutter https://github.com/pietroperona/mcp-server-template  
+# Project: Stock Market Server
+# API: Alpha Vantage (free)
+# Result: Claude can look up stock prices
+```
+
+**Try it**: [Alpha Vantage](https://www.alphavantage.co/) - Free API key, 5 calls/minute
+
+## Detailed Weather Example
+
+Let's walk through building a weather MCP server:
+
+### 1. Get OpenWeatherMap API Key
+- Go to [openweathermap.org](https://openweathermap.org/api)
+- Sign up for free account  
+- Copy your API key
+
+### 2. Generate Project
+```bash
+cookiecutter https://github.com/pietroperona/mcp-server-template
+
+project_name: Weather MCP Server
+project_slug: weather-mcp-server  
+author_name: John Smith
+api_service_type: REST API
+auth_type: API Key
+api_base_url: https://api.openweathermap.org/data/2.5
+include_rate_limiting: yes
+render_deployment: yes
+```
+
+### 3. Configure Environment
+```bash
+cd weather-mcp-server
+cp .env.example .env
+```
+
+Edit `.env`:
+```bash
+API_BASE_URL=https://api.openweathermap.org/data/2.5
+API_KEY=your_actual_api_key_here
+API_KEY_HEADER=appid
+```
+
+### 4. Test Your Server
+```bash
 python main.py
 ```
 
-### Contributing
+### 5. Test with Claude
+Ask Claude: *"Check the weather in London"*
 
-1. Fork this repository
-2. Create a feature branch
-3. Make your changes
-4. Test with different configuration options
-5. Submit a pull request
-
-## 📦 Template Structure
-
+Claude will use your tools:
 ```
-mcp-server-template/
-├── cookiecutter.json                   # Template configuration
-├── hooks/                              # Post-generation automation
-│   ├── pre_gen_project.py             # Input validation
-│   └── post_gen_project.py            # Setup automation
-├── {{cookiecutter.project_slug}}/     # Generated project template
-│   ├── core/                          # Core modules
-│   ├── tools/                         # MCP tools
-│   ├── docs/                          # Documentation
-│   ├── deployment/                    # Deployment configs
-│   └── main.py                        # Server entry point
-└── README.md                          # This file
+Tool: list_resources
+Parameters: resource_type="weather", q="London"
+Result: Current weather data for London
 ```
 
-## 🎯 Examples
+## Customization
 
-### Generated Shopify Integration
+### Modify for Your API
+
+The generated tools are generic but easy to customize:
 
 ```python
-# Generated tools automatically work with any API
-result = await client.get("/admin/api/2023-10/orders.json")
-orders = result.get("orders", [])
-
-# MCP tools are instantly available in Claude:
-# "List my recent Shopify orders"
-# "Get details for order #1234"
-# "Create a new product"
+# In tools/example_tools.py
+async def list_resources_async(resource_type: str = "weather", location: str = "London"):
+    # Customize this for your API
+    endpoint = f"/weather?q={location}"
+    response = await client.get(endpoint)
+    return response
 ```
 
-### Generated Stripe Integration
+### Add API-Specific Tools
 
 ```python
-# Same tools, different API - zero code changes needed
-result = await client.get("/v1/payments")
-payments = result.get("data", [])
-
-# Claude can now:
-# "Show me recent payments"
-# "Get payment details for pay_123"
-# "Create a new payment intent"
+@mcp.tool()
+def get_weather_forecast(city: str, days: int = 5) -> str:
+    """Get weather forecast for a city"""
+    result = run_async_tool(get_forecast_async, city, days)
+    return json.dumps(result, indent=2)
 ```
 
-## 🆘 Support
+### Configure Rate Limiting
 
-- **📖 Documentation**: Each generated project includes complete docs
-- **🐛 Issues**: [GitHub Issues](https://github.com/yourusername/mcp-server-template/issues)
-- **💬 Discussions**: [GitHub Discussions](https://github.com/yourusername/mcp-server-template/discussions)
-- **📧 Email**: your-email@example.com
+```bash
+# In .env
+RATE_LIMIT_REQUESTS=60    # 60 requests
+RATE_LIMIT_WINDOW=60      # per minute
+```
 
-## 📄 License
+## Troubleshooting
 
-This template is released under the MIT License. Generated projects inherit this license unless changed.
+**"Authentication failed"**
+- Check your API key is correct
+- Verify the API_KEY_HEADER name
+- Test API key in browser/Postman first
 
-## 🙏 Acknowledgments
+**"Tools not appearing in Claude"**  
+- Restart Claude Desktop
+- Check MCP configuration syntax
+- Verify server starts without errors
 
-- **Model Context Protocol** - The standard that makes this possible
-- **Claude AI** - The AI assistant this integrates with
-- **FastMCP** - The Python MCP framework
-- **Cookiecutter** - Template generation tool
-- **Render.com** - Deployment platform
+**"Connection timeout"**
+- Increase API_TIMEOUT in .env
+- Check internet connection
+- Verify API endpoint URL
+
+## Development
+
+### Run Tests
+```bash
+python core/auth.py      # Test authentication
+python core/client.py    # Test API connection  
+python main.py          # Start MCP server
+```
+
+### Debug Mode
+```bash
+DEBUG=true python main.py
+```
+
+Shows detailed request/response logs.
+
+## Contributing
+
+1. Fork the [repository](https://github.com/pietroperona/mcp-server-template)
+2. Test your changes with different API types  
+3. Update documentation
+4. Submit pull request
+
+## Why This Template?
+
+Building MCP servers involves a lot of boilerplate:
+- Authentication handling
+- Error management  
+- Rate limiting
+- Configuration
+- Deployment setup
+
+This template gives you all of that instantly, so you can focus on connecting to your specific API.
+
+**Built on proven tools**: [FastMCP](https://github.com/jlowin/fastmcp) for the MCP framework, [Model Context Protocol](https://modelcontextprotocol.io/) for Claude integration.
+
+## License
+
+MIT License - use for any purpose, commercial or personal.
 
 ---
 
-**Start building your MCP server now!** 🚀
+**Ready to connect Claude to your favorite API?**
 
 ```bash
 pip install cookiecutter
-cookiecutter https://github.com/yourusername/mcp-server-template
+cookiecutter https://github.com/pietroperona/mcp-server-template
 ```
