@@ -4,6 +4,8 @@ A practical Cookiecutter template for building MCP servers that connect Claude A
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
+*Last Updated: July 2025*
+
 ## What This Does
 
 This template generates a complete MCP server project that lets Claude AI interact with any API. Think of it as a bridge between Claude and the external services you want to use.
@@ -12,10 +14,12 @@ This template generates a complete MCP server project that lets Claude AI intera
 
 ## Tech Stack
 
-- **[FastMCP](https://github.com/jlowin/fastmcp)** - Python framework for MCP servers
+- **[FastMCP](https://github.com/jlowin/fastmcp)** - Python framework for MCP servers (v0.4.0+)
 - **[aiohttp](https://docs.aiohttp.org/)** - Async HTTP client for API calls  
 - **[Pydantic](https://docs.pydantic.dev/)** - Configuration management
 - **[Render.com](https://render.com)** - One-click deployment
+
+**Requirements**: Python 3.11 or newer
 
 ## Quick Start
 
@@ -29,9 +33,18 @@ cookiecutter https://github.com/pietroperona/mcp-server-template
 You'll be asked a few questions:
 ```
 project_name: Weather MCP Server
+project_slug: weather-mcp-server  [auto-generated]
 author_name: Your Name
+author_email: you@example.com
+github_username: yourusername
+api_base_url: https://api.openweathermap.org/data/2.5
 api_service_type: REST API
 auth_type: API Key
+include_rate_limiting: yes
+include_caching: no
+render_deployment: yes
+docker_support: yes
+license: MIT
 ```
 
 ### 2. Configure Your API
@@ -104,9 +117,15 @@ weather-mcp-server/
 ├── tools/
 │   └── example_tools.py  # The 6 MCP tools
 ├── docs/             # Setup guides & troubleshooting
+│   ├── configuration.md  # Detailed configuration options
+│   ├── quick-start.md    # Getting started guide
+│   ├── README.md         # Overview of documentation
+│   └── troubleshooting.md # Common issues & solutions
 ├── main.py          # FastMCP server
 └── .env.example     # Configuration template
 ```
+
+Note: When your server runs, it may create directories that end with `_data/` (like `cache_data/`). These directories are automatically excluded from git via `.gitignore` as they contain runtime data that shouldn't be committed.
 
 ## Authentication Support
 
