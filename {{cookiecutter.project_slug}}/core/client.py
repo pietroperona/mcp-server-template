@@ -11,9 +11,9 @@ import json
 from typing import Dict, Any, Optional, List, Union
 from datetime import datetime, timedelta
 import aiohttp
-{% if cookiecutter.include_rate_limiting == "yes" -%}
+{%- if cookiecutter.include_rate_limiting == "yes" %}
 from asyncio import Semaphore
-{% endif -%}
+{%- endif %}
 
 # Fix import path for direct execution
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -21,7 +21,7 @@ from core.config import config
 from core.auth import auth
 
 
-{% if cookiecutter.include_rate_limiting == "yes" -%}
+{%- if cookiecutter.include_rate_limiting == "yes" %}
 class RateLimiter:
     """Rate limiter for API requests using token bucket algorithm"""
     
@@ -49,7 +49,7 @@ class RateLimiter:
             
             # Record this request
             self.requests.append(now)
-{% endif -%}
+{%- endif %}
 
 
 class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
@@ -67,12 +67,12 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
     def __init__(self):
         self.base_url = config.api.full_api_url
         self.timeout = config.api.timeout
-{% if cookiecutter.include_rate_limiting == "yes" -%}
+{%- if cookiecutter.include_rate_limiting == "yes" %}
         self.rate_limiter = RateLimiter(
             config.api.rate_limit_requests,
             config.api.rate_limit_window
         )
-{% endif -%}
+{%- endif %}
         self._session: Optional[aiohttp.ClientSession] = None
     
     async def __aenter__(self):
@@ -106,10 +106,10 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
         **kwargs
     ) -> Dict[Any, Any]:
         """Make HTTP request with authentication, rate limiting, and retry logic"""
-{% if cookiecutter.include_rate_limiting == "yes" -%}
+{%- if cookiecutter.include_rate_limiting == "yes" %}
         # Wait for rate limit slot
         await self.rate_limiter.acquire()
-{% endif -%}
+{%- endif %}
         
         # Prepare URL
         url = f"{self.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
@@ -278,15 +278,15 @@ class {{cookiecutter.project_slug|title|replace("-", "")}}Client:
             "base_url": self.base_url,
             "timeout": self.timeout,
             "auth_type": "{{cookiecutter.auth_type}}",
-{% if cookiecutter.include_rate_limiting == "yes" -%}
+{%- if cookiecutter.include_rate_limiting == "yes" %}
             "rate_limiting": {
                 "enabled": True,
                 "max_requests": config.api.rate_limit_requests,
                 "time_window": config.api.rate_limit_window
             },
-{% else -%}
+{%- else %}
             "rate_limiting": {"enabled": False},
-{% endif -%}
+{%- endif %}
             "client_info": {
                 "user_agent": f"{{cookiecutter.project_name}}/{{cookiecutter.project_version}}",
                 "session_active": self._session is not None and not self._session.closed

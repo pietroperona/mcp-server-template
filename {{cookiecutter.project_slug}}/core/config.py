@@ -19,26 +19,29 @@ class APIConfig(BaseSettings):
     timeout: int = Field(default=30, env="API_TIMEOUT", description="Request timeout in seconds")
     
     # Authentication Configuration
-{% if cookiecutter.auth_type == "API Key" -%}
+{%- if cookiecutter.auth_type == "API Key" %}
     api_key: str = Field(env="API_KEY", description="API key for authentication")
     api_key_header: str = Field(default="X-API-Key", env="API_KEY_HEADER", description="Header name for API key")
-{% elif cookiecutter.auth_type == "Bearer Token" -%}
+{%- elif cookiecutter.auth_type == "Bearer Token" %}
     bearer_token: str = Field(env="BEARER_TOKEN", description="Bearer token for authentication")
-{% elif cookiecutter.auth_type == "OAuth2" -%}
+{%- elif cookiecutter.auth_type == "OAuth2" %}
     client_id: str = Field(env="CLIENT_ID", description="OAuth2 client ID")
     client_secret: str = Field(env="CLIENT_SECRET", description="OAuth2 client secret")
     oauth_scope: str = Field(default="read,write", env="OAUTH_SCOPE", description="OAuth2 scope")
     redirect_uri: str = Field(default="http://localhost:8080/callback", env="OAUTH_REDIRECT_URI", description="OAuth2 redirect URI")
-{% elif cookiecutter.auth_type == "Basic Auth" -%}
+{%- elif cookiecutter.auth_type == "Basic Auth" %}
     username: str = Field(env="USERNAME", description="Username for basic authentication")
     password: str = Field(env="PASSWORD", description="Password for basic authentication")
-{% endif -%}
+{%- else %}
+    # Custom authentication configuration
+    # Add your custom auth fields here
+{%- endif %}
     
-{% if cookiecutter.include_rate_limiting == "yes" -%}
+{%- if cookiecutter.include_rate_limiting == "yes" %}
     # Rate Limiting Configuration
     rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS", description="Max requests per time window")
     rate_limit_window: int = Field(default=3600, env="RATE_LIMIT_WINDOW", description="Rate limit time window in seconds")
-{% endif -%}
+{%- endif %}
     
     @property
     def full_api_url(self) -> str:
@@ -71,7 +74,7 @@ class MCPConfig(BaseSettings):
         "extra": "ignore"
     }
 
-{% if cookiecutter.include_caching == "yes" -%}
+{%- if cookiecutter.include_caching == "yes" %}
 class CacheConfig(BaseSettings):
     """Caching configuration"""
     
@@ -82,7 +85,7 @@ class CacheConfig(BaseSettings):
         "env_file": ".env",
         "extra": "ignore"
     }
-{% endif -%}
+{%- endif %}
 
 class AppConfig:
     """Main application configuration container"""
@@ -90,32 +93,32 @@ class AppConfig:
     def __init__(self):
         self.api = APIConfig()
         self.mcp = MCPConfig()
-{% if cookiecutter.include_caching == "yes" -%}
+{%- if cookiecutter.include_caching == "yes" %}
         self.cache = CacheConfig()
-{% endif -%}
+{%- endif %}
     
     def validate(self) -> bool:
         """Validate all configuration settings"""
         missing_settings = []
         
         # Check required API settings
-{% if cookiecutter.auth_type == "API Key" -%}
+{%- if cookiecutter.auth_type == "API Key" %}
         if not self.api.api_key:
             missing_settings.append("API_KEY")
-{% elif cookiecutter.auth_type == "Bearer Token" -%}
+{%- elif cookiecutter.auth_type == "Bearer Token" %}
         if not self.api.bearer_token:
             missing_settings.append("BEARER_TOKEN")
-{% elif cookiecutter.auth_type == "OAuth2" -%}
+{%- elif cookiecutter.auth_type == "OAuth2" %}
         if not self.api.client_id:
             missing_settings.append("CLIENT_ID")
         if not self.api.client_secret:
             missing_settings.append("CLIENT_SECRET")
-{% elif cookiecutter.auth_type == "Basic Auth" -%}
+{%- elif cookiecutter.auth_type == "Basic Auth" %}
         if not self.api.username:
             missing_settings.append("USERNAME")
         if not self.api.password:
             missing_settings.append("PASSWORD")
-{% endif -%}
+{%- endif %}
         
         if not self.api.base_url:
             missing_settings.append("API_BASE_URL")
@@ -133,12 +136,12 @@ class AppConfig:
             "api_base_url": self.api.base_url,
             "environment": self.mcp.environment,
             "debug_mode": self.mcp.debug,
-{% if cookiecutter.include_rate_limiting == "yes" -%}
+{%- if cookiecutter.include_rate_limiting == "yes" %}
             "rate_limiting_enabled": True,
             "rate_limit": f"{self.api.rate_limit_requests} requests per {self.api.rate_limit_window}s",
-{% else -%}
+{%- else %}
             "rate_limiting_enabled": False,
-{% endif -%}
+{%- endif %}
         }
 
 # Global configuration instance

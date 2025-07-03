@@ -14,5 +14,9 @@
     "render_deployment": ["yes", "no"],
     "docker_support": ["yes", "no"],
     "license": ["MIT", "Apache-2.0", "GPL-3.0", "Proprietary"],
-    "python_version": "3.11"
+    "python_version": "3.11",
+    "_jinja2_env_vars": {
+        "lstrip_blocks": true,
+        "trim_blocks": true
+    }
 }
