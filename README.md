@@ -1,10 +1,27 @@
 # MCP Server Template
 
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
+[![FastMCP](https://img.shields.io/badge/FastMCP-0.4.0%2B-orange?style=flat-square)](https://github.com/jlowin/fastmcp)
+[![Claude AI](https://img.shields.io/badge/Claude%20AI-Compatible-purple?style=flat-square)](https://www.anthropic.com/claude)
+[![Deploy to Render](https://img.shields.io/badge/Deploy%20to-Render-green?style=flat-square&logo=render)](https://render.com/deploy)
+
 A practical Cookiecutter template for building MCP servers that connect Claude AI to external APIs. Built with FastMCP and ready for Render.com deployment.
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
 *Last Updated: July 2025*
+
+## Features at a Glance
+
+- 🔌 **Multi-Platform Compatibility**: Works with Claude Desktop, Claude Web, and Claude API
+- 🔒 **Comprehensive Auth Support**: API Key, Bearer Token, OAuth2, Basic Auth
+- 🚦 **Rate Limiting**: Configurable request throttling to avoid API bans
+- 🧩 **Ready-to-Use Tools**: 6 pre-built generic API tools adaptable to any service
+- 🚀 **One-Click Deployment**: Render.com integration with pre-configured settings
+- 🐳 **Docker Support**: Containerization for cloud deployments
+- 🛠️ **Robust Error Handling**: Detailed error reporting and recovery
+- 🧪 **Testable Components**: Each module can be tested independently
+- 🔄 **Session Management Fix**: Prevents "Event loop is closed" errors
 
 ## What This Does
 
@@ -86,6 +103,20 @@ Add this to your Claude Desktop MCP configuration:
 
 Now Claude can check weather: *"What's the weather like in Tokyo?"*
 
+### 5. Connect to Claude Web Browser (Claude.ai)
+
+Your MCP server also exposes an SSE (Server-Sent Events) endpoint at `/sse` that can be used with Claude Web in browsers:
+
+1. Deploy your MCP server to a public URL (see Deployment section)
+2. In Claude Web, go to Settings → Claude API Tools
+3. Add your MCP server's public URL + `/sse` endpoint:
+   ```
+   https://your-mcp-server.onrender.com/sse
+   ```
+4. Claude Web will now show your tools in the Tools menu
+
+**Note**: The `/sse` endpoint is automatically included in all MCP servers generated with this template.
+
 ## What You Get
 
 Every generated project includes:
@@ -156,7 +187,7 @@ PASSWORD=your_password
 
 ## Production Deployment
 
-### Render.com (Recommended)
+### Render.com (Recommended) 🚀
 
 1. Push your generated project to GitHub
 2. Connect to Render.com
@@ -165,12 +196,20 @@ PASSWORD=your_password
 
 The template includes `render.yaml` with optimized settings for production.
 
-### Docker
+**Important for Claude Web Browser**: 
+Make sure to note the public URL of your deployed service. Claude Web will connect to your MCP server via the `/sse` endpoint:
+```
+https://your-service-name.onrender.com/sse
+```
+
+### Docker 🐳
 
 ```bash
 docker build -t my-mcp-server .
 docker run -p 8000:8000 --env-file .env my-mcp-server
 ```
+
+**For Claude Web**: Access the SSE endpoint at `http://your-docker-host:8000/sse`
 
 ## Real-World Examples
 
@@ -291,36 +330,77 @@ RATE_LIMIT_WINDOW=60      # per minute
 
 ## Troubleshooting
 
+### Authentication Issues 🔑
+
 **"Authentication failed"**
 - Check your API key is correct
 - Verify the API_KEY_HEADER name
 - Test API key in browser/Postman first
+
+### Tool Connection Issues 🔌
 
 **"Tools not appearing in Claude"**  
 - Restart Claude Desktop
 - Check MCP configuration syntax
 - Verify server starts without errors
 
+**"Claude Web doesn't show my tools"**
+- Make sure you're using the correct `/sse` endpoint
+- Check CORS settings if hosting on a custom domain
+- Verify your server is publicly accessible
+
+### API Connection Issues 🌐
+
 **"Connection timeout"**
 - Increase API_TIMEOUT in .env
 - Check internet connection
 - Verify API endpoint URL
 
+**"API versioning problems"**
+- Some APIs (like OpenWeatherMap) don't use version prefixes in URLs
+- Set `API_VERSION=none` or leave it empty in your .env file
+- This template handles version-less APIs automatically
+
+### Technical Issues 🛠️
+
+**"Event loop is closed" errors**
+- This is fixed in the latest template version (July 2025)
+- The template now uses a better session management approach for aiohttp
+- Each request creates a new session with proper cleanup
+- Custom event loop handling prevents these errors
+
 ## Development
 
-### Run Tests
+### Run Tests ✅
 ```bash
 python core/auth.py      # Test authentication
 python core/client.py    # Test API connection  
 python main.py          # Start MCP server
 ```
 
-### Debug Mode
+### Debug Mode 🐛
 ```bash
 DEBUG=true python main.py
 ```
 
 Shows detailed request/response logs.
+
+### Session Management 🔄
+
+This template uses an optimized approach to manage aiohttp sessions:
+
+```python
+# Create a new session for each request (prevents "Event loop is closed" errors)
+async with aiohttp.ClientSession() as session:
+    async with session.request(...) as response:
+        # Process response
+```
+
+This pattern ensures that:
+- Each HTTP request gets a fresh session
+- Sessions are properly closed after use
+- No "Event loop is closed" errors occur
+- Better handling of asyncio event loops
 
 ## Contributing
 
@@ -332,15 +412,20 @@ Shows detailed request/response logs.
 ## Why This Template?
 
 Building MCP servers involves a lot of boilerplate:
-- Authentication handling
-- Error management  
-- Rate limiting
-- Configuration
-- Deployment setup
+- 🔐 Authentication handling
+- ⚠️ Error management  
+- 🚦 Rate limiting
+- ⚙️ Configuration
+- 🚀 Deployment setup
 
 This template gives you all of that instantly, so you can focus on connecting to your specific API.
 
 **Built on proven tools**: [FastMCP](https://github.com/jlowin/fastmcp) for the MCP framework, [Model Context Protocol](https://modelcontextprotocol.io/) for Claude integration.
+
+**Works with**:
+- 🖥️ Claude Desktop (via local MCP server)
+- 🌐 Claude Web Browser (via `/sse` endpoint)
+- 🤖 Claude API (via proxy configuration)
 
 ## License
 
@@ -348,7 +433,16 @@ MIT License - use for any purpose, commercial or personal.
 
 ---
 
-**Ready to connect Claude to your favorite API?**
+## 🔄 Recent Updates
+
+- **July 2025**: Fixed "Event loop is closed" errors with improved aiohttp session management
+- **July 2025**: Added Claude Web Browser support via `/sse` endpoint
+- **July 2025**: Improved API versioning with better handling of version-less APIs
+- **July 2025**: Added better error handling and troubleshooting guidance
+
+---
+
+**Ready to connect Claude to your favorite API?** 🚀
 
 ```bash
 pip install cookiecutter
