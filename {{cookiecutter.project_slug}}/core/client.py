@@ -81,27 +81,18 @@ class McpApiClient:
                 config.api.rate_limit_requests, config.api.rate_limit_window
             )
 
-        self._session: Optional[aiohttp.ClientSession] = None
-
     async def __aenter__(self):
         """Async context manager entry"""
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit - cleanup sessions"""
-        await self.close()
+        """Async context manager exit"""
+        pass
 
-    async def _get_session(self) -> aiohttp.ClientSession:
-        """Get or create aiohttp session"""
-        if self._session is None or self._session.closed:
-            timeout = aiohttp.ClientTimeout(total=self.timeout)
-            self._session = aiohttp.ClientSession(timeout=timeout)
-        return self._session
-
-    async def close(self):
-        """Close all HTTP sessions"""
-        if self._session and not self._session.closed:
-            await self._session.close()
+    async def _create_session(self) -> aiohttp.ClientSession:
+        """Create a new aiohttp session with the configured timeout"""
+        timeout = aiohttp.ClientTimeout(total=self.timeout)
+        return aiohttp.ClientSession(timeout=timeout)
 
     async def _make_request(
         self,
@@ -145,40 +136,39 @@ class McpApiClient:
 
         for attempt in range(max_retries + 1):
             try:
-                session = await self._get_session()
+                # Create a new session for each request attempt to avoid "Event loop is closed" errors
+                async with await self._create_session() as session:
+                    async with session.request(
+                        method=method,
+                        url=url,
+                        params=params,
+                        json=json_data,
+                        data=data,
+                        headers=final_headers,
+                        **kwargs,
+                    ) as response:
+                        # Handle different response types
+                        content_type = response.headers.get("Content-Type", "")
 
-                async with session.request(
-                    method=method,
-                    url=url,
-                    params=params,
-                    json=json_data,
-                    data=data,
-                    headers=final_headers,
-                    **kwargs,
-                ) as response:
+                        if response.status >= 400:
+                            error_text = await response.text()
+                            raise APIError(
+                                f"API error {response.status}: {error_text}",
+                                status_code=response.status,
+                                response_text=error_text,
+                            )
 
-                    # Handle different response types
-                    content_type = response.headers.get("Content-Type", "")
+                        if "application/json" in content_type:
+                            result = await response.json()
+                        else:
+                            text_content = await response.text()
+                            result = {"content": text_content, "content_type": content_type}
 
-                    if response.status >= 400:
-                        error_text = await response.text()
-                        raise APIError(
-                            f"API error {response.status}: {error_text}",
-                            status_code=response.status,
-                            response_text=error_text,
-                        )
+                        # Log successful response
+                        if config.mcp.debug:
+                            print(f"✅ Response received ({len(str(result))} chars)")
 
-                    if "application/json" in content_type:
-                        result = await response.json()
-                    else:
-                        text_content = await response.text()
-                        result = {"content": text_content, "content_type": content_type}
-
-                    # Log successful response
-                    if config.mcp.debug:
-                        print(f"✅ Response received ({len(str(result))} chars)")
-
-                    return result
+                        return result
 
             except (aiohttp.ClientError, asyncio.TimeoutError) as e:
                 if attempt == max_retries:
@@ -318,8 +308,6 @@ class McpApiClient:
             "rate_limiting": {"enabled": include_rate_limiting},
             "client_info": {
                 "user_agent": f"{{cookiecutter.project_name}}/{{cookiecutter.project_version}}",
-                "session_active": self._session is not None
-                and not self._session.closed,
             },
         }
 
@@ -385,8 +373,6 @@ async def test_client():
     except Exception as e:
         print(f"❌ Client test failed: {e}")
         return False
-    finally:
-        await client.close()
 
 
 if __name__ == "__main__":

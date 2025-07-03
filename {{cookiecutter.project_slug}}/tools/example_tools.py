@@ -40,13 +40,27 @@ def run_async_tool(async_func, *args, **kwargs):
             loop = asyncio.get_running_loop()
 
             # If we have a running loop, we need to run in a thread
+            # to avoid "Event loop is closed" errors
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(asyncio.run, async_func(*args, **kwargs))
+                # Use a custom runner function to ensure event loop is properly closed
+                def run_and_close_loop():
+                    # Create a new event loop for this thread
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    try:
+                        # Run the async function
+                        return loop.run_until_complete(async_func(*args, **kwargs))
+                    finally:
+                        # Ensure the loop is closed properly
+                        loop.close()
+                
+                future = executor.submit(run_and_close_loop)
                 result = future.result(timeout=60)  # 60 second timeout
                 return result
 
         except RuntimeError:
             # No running loop, safe to create new one
+            # asyncio.run handles loop creation and cleanup automatically
             result = asyncio.run(async_func(*args, **kwargs))
             return result
 
