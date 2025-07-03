@@ -18,7 +18,7 @@ class APIConfig(BaseSettings):
 
     # API Connection Settings
     base_url: str = Field(env="API_BASE_URL", description="Base URL for the API")
-    version: str = Field(default="v1", env="API_VERSION", description="API version")
+    version: str = Field(default="", env="API_VERSION", description="API version")
     timeout: int = Field(
         default=30, env="API_TIMEOUT", description="Request timeout in seconds"
     )
