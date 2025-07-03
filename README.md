@@ -11,23 +11,28 @@ A practical Cookiecutter template for building MCP servers that connect Claude A
 
 *Last Updated: July 2025*
 
-## Features at a Glance
+## Key Features
 
-- 🔌 **Multi-Platform Compatibility**: Works with Claude Desktop, Claude Web, and Claude API
-- 🔒 **Comprehensive Auth Support**: API Key, Bearer Token, OAuth2, Basic Auth
-- 🚦 **Rate Limiting**: Configurable request throttling to avoid API bans
-- 🧩 **Ready-to-Use Tools**: 6 pre-built generic API tools adaptable to any service
-- 🚀 **One-Click Deployment**: Render.com integration with pre-configured settings
-- 🐳 **Docker Support**: Containerization for cloud deployments
-- 🛠️ **Robust Error Handling**: Detailed error reporting and recovery
-- 🧪 **Testable Components**: Each module can be tested independently
-- 🔄 **Session Management Fix**: Prevents "Event loop is closed" errors
+- **Multi-Platform Compatibility**: Works with Claude Desktop, Claude Web, and Claude API
+- **Comprehensive Auth Support**: API Key, Bearer Token, OAuth2, Basic Auth
+- **Rate Limiting**: Configurable request throttling to avoid API limits
+- **Ready-to-Use Tools**: 6 pre-built generic API tools adaptable to any service
+- **One-Click Deployment**: Render.com integration with pre-configured settings
+- **Docker Support**: Containerization for cloud deployments (beta - community testing welcome)
+- **Robust Error Handling**: Detailed error reporting and recovery
+- **Testable Components**: Each module can be tested independently
+- **Session Management**: Prevents "Event loop is closed" errors
 
 ## What This Does
 
 This template generates a complete MCP server project that lets Claude AI interact with any API. Think of it as a bridge between Claude and the external services you want to use.
 
-**Example**: Generate a weather MCP server in 2 minutes, deploy it to Render.com, and suddenly Claude can check weather for any city in the world.
+**Example scenarios:**
+- Weather data from meteorological services
+- News headlines from news APIs
+- Stock prices from financial data providers
+- Social media posts from platform APIs
+- E-commerce data from marketplace APIs
 
 ## Tech Stack
 
@@ -49,12 +54,12 @@ cookiecutter https://github.com/pietroperona/mcp-server-template
 
 You'll be asked a few questions:
 ```
-project_name: Weather MCP Server
-project_slug: weather-mcp-server  [auto-generated]
+project_name: News API Server
+project_slug: news-api-server  [auto-generated]
 author_name: Your Name
 author_email: you@example.com
 github_username: yourusername
-api_base_url: https://api.openweathermap.org/data/2.5
+api_base_url: https://newsapi.org/v2
 api_service_type: REST API
 auth_type: API Key
 include_rate_limiting: yes
@@ -67,14 +72,14 @@ license: MIT
 ### 2. Configure Your API
 
 ```bash
-cd weather-mcp-server
+cd news-api-server
 cp .env.example .env
 ```
 
 Edit `.env` with your API credentials:
 ```bash
-API_BASE_URL=https://api.openweathermap.org/data/2.5
-API_KEY=your_openweather_api_key
+API_BASE_URL=https://newsapi.org/v2
+API_KEY=your_news_api_key
 ```
 
 ### 3. Install and Run
@@ -92,16 +97,16 @@ Add this to your Claude Desktop MCP configuration:
 ```json
 {
   "mcpServers": {
-    "weather": {
+    "news-api": {
       "command": "python",
-      "args": ["weather-mcp-server/main.py"],
-      "cwd": "weather-mcp-server"
+      "args": ["news-api-server/main.py"],
+      "cwd": "news-api-server"
     }
   }
 }
 ```
 
-Now Claude can check weather: *"What's the weather like in Tokyo?"*
+Now Claude can fetch news: *"What are the latest tech headlines?"*
 
 ### 5. Connect to Claude Web Browser (Claude.ai)
 
@@ -123,24 +128,24 @@ Every generated project includes:
 
 ### 6 Ready-to-Use Tools
 - `get_api_status` - Check if your API is working
-- `list_resources` - Browse available data (cities, users, etc.)
+- `list_resources` - Browse available data (articles, users, products, etc.)
 - `get_resource_by_id` - Get specific item details
 - `create_resource` - Add new data
 - `update_resource` - Modify existing data  
 - `delete_resource` - Remove data
 
-### Real Example: Weather API
+### Real Example: News API
 
-When you ask Claude *"What's the weather in Paris?"*, here's what happens:
+When you ask Claude *"Show me recent technology news"*, here's what happens:
 
-1. Claude calls `list_resources(resource_type="weather", location="Paris")`
-2. Your MCP server hits `https://api.openweathermap.org/data/2.5/weather?q=Paris`
-3. Claude gets the weather data and responds naturally
+1. Claude calls `list_resources(resource_type="articles", category="technology")`
+2. Your MCP server hits `https://newsapi.org/v2/everything?q=technology`
+3. Claude gets the news data and responds with formatted articles
 
 ### Project Structure
 
 ```
-weather-mcp-server/
+news-api-server/
 ├── core/
 │   ├── config.py     # API credentials & settings
 │   ├── auth.py       # Handle API authentication  
@@ -187,7 +192,7 @@ PASSWORD=your_password
 
 ## Production Deployment
 
-### Render.com (Recommended) 🚀
+### Render.com (Recommended)
 
 1. Push your generated project to GitHub
 2. Connect to Render.com
@@ -202,7 +207,9 @@ Make sure to note the public URL of your deployed service. Claude Web will conne
 https://your-service-name.onrender.com/sse
 ```
 
-### Docker 🐳
+### Docker
+
+> **Note**: Docker support is included in the template but has not been extensively tested yet. Community feedback and contributions are welcome.
 
 ```bash
 docker build -t my-mcp-server .
@@ -213,6 +220,17 @@ docker run -p 8000:8000 --env-file .env my-mcp-server
 
 ## Real-World Examples
 
+### News Headlines Service
+```bash
+# Generate project
+cookiecutter https://github.com/pietroperona/mcp-server-template
+# Project: News API Server
+# API: NewsAPI.org (free tier)
+# Result: Claude can fetch latest news by category/keyword
+```
+
+**Try it**: [NewsAPI.org](https://newsapi.org/) - 1000 free requests/day
+
 ### Weather Service
 ```bash
 # Generate project
@@ -222,34 +240,34 @@ cookiecutter https://github.com/pietroperona/mcp-server-template
 # Result: Claude can check weather worldwide
 ```
 
-### News Headlines  
-```bash
-# Generate project  
-cookiecutter https://github.com/pietroperona/mcp-server-template
-# Project: News API Server
-# API: NewsAPI.org (free tier)
-# Result: Claude can fetch latest news
-```
+**Try it**: [OpenWeatherMap](https://openweathermap.org/api) - Free API with 1000 calls/day
 
-**Try it**: [NewsAPI.org](https://newsapi.org/) - 1000 free requests/day
-
-### Stock Prices
+### Stock Market Data
 ```bash
 # Generate project
 cookiecutter https://github.com/pietroperona/mcp-server-template  
 # Project: Stock Market Server
 # API: Alpha Vantage (free)
-# Result: Claude can look up stock prices
+# Result: Claude can look up stock prices and market data
 ```
 
 **Try it**: [Alpha Vantage](https://www.alphavantage.co/) - Free API key, 5 calls/minute
 
-## Detailed Weather Example
+### Social Media Integration
+```bash
+# Generate project
+cookiecutter https://github.com/pietroperona/mcp-server-template
+# Project: Social Media Server
+# API: Twitter/X API (paid)
+# Result: Claude can post tweets and read social media feeds
+```
 
-Let's walk through building a weather MCP server:
+## Detailed Setup Example
 
-### 1. Get OpenWeatherMap API Key
-- Go to [openweathermap.org](https://openweathermap.org/api)
+Let's walk through building a news API server:
+
+### 1. Get NewsAPI Key
+- Go to [newsapi.org](https://newsapi.org/)
 - Sign up for free account  
 - Copy your API key
 
@@ -257,27 +275,27 @@ Let's walk through building a weather MCP server:
 ```bash
 cookiecutter https://github.com/pietroperona/mcp-server-template
 
-project_name: Weather MCP Server
-project_slug: weather-mcp-server  
+project_name: News API Server
+project_slug: news-api-server  
 author_name: John Smith
 api_service_type: REST API
 auth_type: API Key
-api_base_url: https://api.openweathermap.org/data/2.5
+api_base_url: https://newsapi.org/v2
 include_rate_limiting: yes
 render_deployment: yes
 ```
 
 ### 3. Configure Environment
 ```bash
-cd weather-mcp-server
+cd news-api-server
 cp .env.example .env
 ```
 
 Edit `.env`:
 ```bash
-API_BASE_URL=https://api.openweathermap.org/data/2.5
+API_BASE_URL=https://newsapi.org/v2
 API_KEY=your_actual_api_key_here
-API_KEY_HEADER=appid
+API_KEY_HEADER=X-API-Key
 ```
 
 ### 4. Test Your Server
@@ -286,13 +304,13 @@ python main.py
 ```
 
 ### 5. Test with Claude
-Ask Claude: *"Check the weather in London"*
+Ask Claude: *"What are the latest technology headlines?"*
 
 Claude will use your tools:
 ```
 Tool: list_resources
-Parameters: resource_type="weather", q="London"
-Result: Current weather data for London
+Parameters: resource_type="articles", category="technology"
+Result: Latest tech news articles with titles, descriptions, and URLs
 ```
 
 ## Customization
@@ -303,9 +321,9 @@ The generated tools are generic but easy to customize:
 
 ```python
 # In tools/example_tools.py
-async def list_resources_async(resource_type: str = "weather", location: str = "London"):
+async def list_resources_async(resource_type: str = "articles", category: str = "general"):
     # Customize this for your API
-    endpoint = f"/weather?q={location}"
+    endpoint = f"/everything?category={category}"
     response = await client.get(endpoint)
     return response
 ```
@@ -314,9 +332,9 @@ async def list_resources_async(resource_type: str = "weather", location: str = "
 
 ```python
 @mcp.tool()
-def get_weather_forecast(city: str, days: int = 5) -> str:
-    """Get weather forecast for a city"""
-    result = run_async_tool(get_forecast_async, city, days)
+def get_headlines_by_category(category: str, country: str = "us") -> str:
+    """Get top headlines by category and country"""
+    result = run_async_tool(get_headlines_async, category, country)
     return json.dumps(result, indent=2)
 ```
 
@@ -330,14 +348,14 @@ RATE_LIMIT_WINDOW=60      # per minute
 
 ## Troubleshooting
 
-### Authentication Issues 🔑
+### Authentication Issues
 
 **"Authentication failed"**
 - Check your API key is correct
 - Verify the API_KEY_HEADER name
 - Test API key in browser/Postman first
 
-### Tool Connection Issues 🔌
+### Tool Connection Issues
 
 **"Tools not appearing in Claude"**  
 - Restart Claude Desktop
@@ -349,7 +367,7 @@ RATE_LIMIT_WINDOW=60      # per minute
 - Check CORS settings if hosting on a custom domain
 - Verify your server is publicly accessible
 
-### API Connection Issues 🌐
+### API Connection Issues
 
 **"Connection timeout"**
 - Increase API_TIMEOUT in .env
@@ -357,11 +375,11 @@ RATE_LIMIT_WINDOW=60      # per minute
 - Verify API endpoint URL
 
 **"API versioning problems"**
-- Some APIs (like OpenWeatherMap) don't use version prefixes in URLs
+- Some APIs don't use version prefixes in URLs
 - Set `API_VERSION=none` or leave it empty in your .env file
 - This template handles version-less APIs automatically
 
-### Technical Issues 🛠️
+### Technical Issues
 
 **"Event loop is closed" errors**
 - This is fixed in the latest template version (July 2025)
@@ -371,21 +389,21 @@ RATE_LIMIT_WINDOW=60      # per minute
 
 ## Development
 
-### Run Tests ✅
+### Run Tests
 ```bash
 python core/auth.py      # Test authentication
 python core/client.py    # Test API connection  
 python main.py          # Start MCP server
 ```
 
-### Debug Mode 🐛
+### Debug Mode
 ```bash
 DEBUG=true python main.py
 ```
 
 Shows detailed request/response logs.
 
-### Session Management 🔄
+### Session Management
 
 This template uses an optimized approach to manage aiohttp sessions:
 
@@ -402,6 +420,11 @@ This pattern ensures that:
 - No "Event loop is closed" errors occur
 - Better handling of asyncio event loops
 
+## Known Limitations
+
+- **Docker Support**: While Dockerfile and docker-compose files are included, Docker deployment has not been extensively tested across different environments. We welcome community feedback and testing.
+- **OAuth2 Flow**: OAuth2 implementation requires manual token exchange - automatic browser-based flow is not yet implemented.
+
 ## Contributing
 
 1. Fork the [repository](https://github.com/pietroperona/mcp-server-template)
@@ -412,20 +435,20 @@ This pattern ensures that:
 ## Why This Template?
 
 Building MCP servers involves a lot of boilerplate:
-- 🔐 Authentication handling
-- ⚠️ Error management  
-- 🚦 Rate limiting
-- ⚙️ Configuration
-- 🚀 Deployment setup
+- Authentication handling
+- Error management  
+- Rate limiting
+- Configuration
+- Deployment setup
 
 This template gives you all of that instantly, so you can focus on connecting to your specific API.
 
 **Built on proven tools**: [FastMCP](https://github.com/jlowin/fastmcp) for the MCP framework, [Model Context Protocol](https://modelcontextprotocol.io/) for Claude integration.
 
 **Works with**:
-- 🖥️ Claude Desktop (via local MCP server)
-- 🌐 Claude Web Browser (via `/sse` endpoint)
-- 🤖 Claude API (via proxy configuration)
+- Claude Desktop (via local MCP server)
+- Claude Web Browser (via `/sse` endpoint)
+- Claude API (via proxy configuration)
 
 ## License
 
@@ -433,7 +456,7 @@ MIT License - use for any purpose, commercial or personal.
 
 ---
 
-## 🔄 Recent Updates
+## Recent Updates
 
 - **July 2025**: Fixed "Event loop is closed" errors with improved aiohttp session management
 - **July 2025**: Added Claude Web Browser support via `/sse` endpoint
@@ -442,7 +465,7 @@ MIT License - use for any purpose, commercial or personal.
 
 ---
 
-**Ready to connect Claude to your favorite API?** 🚀
+**Ready to connect Claude to your favorite API?**
 
 ```bash
 pip install cookiecutter
