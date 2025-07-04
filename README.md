@@ -15,8 +15,6 @@ A practical Cookiecutter template for building MCP servers that connect Claude A
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
-*Last Updated: July 2025*
-
 ## Key Features
 
 - **Multi-Platform Compatibility**: Works with Claude Desktop, Claude Web, and Claude API
