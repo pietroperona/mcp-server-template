@@ -93,16 +93,6 @@ def initialize_git_repository():
 
     if success:
         # Configure git if needed (only for this repo)
-        run_command(
-            'git config user.name "{{ cookiecutter.author_name }}"',
-            "Setting git user name",
-            optional=True,
-        )
-        run_command(
-            'git config user.email "{{ cookiecutter.author_email }}"',
-            "Setting git user email",
-            optional=True,
-        )
 
         # Create .gitignore if it doesn't exist
         if not os.path.exists(".gitignore"):
