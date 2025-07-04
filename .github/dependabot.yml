@@ -1,9 +1,9 @@
 # Dependabot configuration for MCP Server Template
-# This file monitors dependencies both in the template root and in generated projects
+# Monitors dependencies in the template itself and hook files
 
 version: 2
 updates:
-  # Monitor template-level dependencies (cookiecutter, development tools)
+  # Monitor template-level dependencies (hooks, development tools)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -19,30 +19,6 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
-    
-  # Monitor dependencies in the generated project template
-  - package-ecosystem: "pip"
-    directory: "/{{cookiecutter.project_slug}}"
-    schedule:
-      interval: "weekly"
-      day: "tuesday"
-      time: "06:00"
-      timezone: "Europe/Rome"
-    labels:
-      - "dependencies"
-      - "template-generated"
-    reviewers:
-      - "pietroperona"  # Replace with your GitHub username
-    commit-message:
-      prefix: "deps(template)"
-      include: "scope"
-    # Group FastMCP and MCP-related updates together
-    groups:
-      mcp-ecosystem:
-        patterns:
-          - "fastmcp*"
-          - "mcp*"
-          - "*mcp*"
         
   # Monitor GitHub Actions (if you add CI/CD workflows)
   - package-ecosystem: "github-actions"
@@ -60,14 +36,3 @@ updates:
     commit-message:
       prefix: "ci"
       include: "scope"
-    
-  # Monitor requirements in the template example projects (if you add them)
-  - package-ecosystem: "pip"
-    directory: "/examples"
-    schedule:
-      interval: "monthly"
-    labels:
-      - "dependencies"
-      - "examples"
-    commit-message:
-      prefix: "deps(examples)"
