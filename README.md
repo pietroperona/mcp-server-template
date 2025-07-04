@@ -1,7 +1,11 @@
 <div align="center">
   <img src="assets/mcp_server_logo.svg" alt="MCP Server Template" width="450"/>
 </div>
-<br/><br/>
+
+<br/>
+
+<br/>
+
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
 [![FastMCP](https://img.shields.io/badge/FastMCP-0.4.0%2B-orange?style=flat-square)](https://github.com/jlowin/fastmcp)
 [![Claude AI](https://img.shields.io/badge/Claude%20AI-Compatible-purple?style=flat-square)](https://www.anthropic.com/claude)
