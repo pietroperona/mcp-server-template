@@ -1,6 +1,5 @@
 <div align="center">
-  <img src="assets/mcp_server_logo.svg" alt="MCP Server Template" width="300" onerror="this.style.display='none'; document.getElementById('fallback-title').style.display='block'"/>
-  <h1 id="fallback-title" style="display:none">MCP Server Template</h1>
+  <img src="assets/mcp_server_logo.svg" alt="MCP Server Template" width="370" onerror="this.style.display='none'; document.getElementById('fallback-title').style.display='block'"/>
 </div>
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
